@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Side Effect</title>
+  <meta charset="utf-8">
+  <style>
+    @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+    @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+    @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+    body { font-family: 'Droid Serif'; color: #333333; }
+    h1 { font-family: 'Yanone Kaffeesatz'; font-weight: normal; color: #074548; }
+    h2, h3 { font-family: 'Yanone Kaffeesatz'; font-weight: normal; color: #6f9a9c; }
+    .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+    .medium { font-size: 28px; }
+    .large { font-size: 36px; }
+    .pull-left { float: left; width: 47%; }
+    .pull-right { float: right; width: 47%; }
+    .large-left { float: left; width: 67%; }
+    .small-right { float: right; width: 27%; }
+    .medium-right { float: right; width: 37%; }
+    .footer { position: absolute; bottom: 12px; left: 45px }
+    table { border-collapse: collapse; display: inline-block; }
+    th, td { padding: 10px; border: 1px solid black; }
+    tr:nth-child(even) {background-color: #f2f2f2;}
+    .reference {
+    font-size: 16px;
+    position: fixed;
+    left: 50%;
+    bottom: 12px;
+    transform: translate(-50%, -50%);
+    margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+<textarea id="source">
+
+class: center, middle
+
+<a href="https://github.com/fp-tower/foundation">
+  <img src="img/solid-color-logo.svg" alt="logo" style="width:600px;"/>
+</a>
+
+<br>
+<br>
+
+
+# Side Effect
+
+---
+layout: true
+
+<div class="footer">
+  <a href="https://github.com/fp-tower/foundation">
+    <img src="img/symbol-solid-gray-b3b3b3.svg" alt="logo" style="width:100px;"/>
+  </a>
+</div>
+
+---
+background-image: url(img/sideeffect/function-age.svg)
+
+# Pure function
+
+---
+.h1[# How to do something?]
+
+<br>
+
+.large[
+* read or write from a file
+
+* save user in database
+
+* send notification to user's phone
+
+* update counter of active users
+]
+
+---
+class: center, middle
+
+# A pure function cannot DO anything
+# it can only produce a VALUE
+
+---
+class: center, middle
+
+# Functional Programming is useless *
+
+[Simon Peyton Jones](https://www.reddit.com/r/programming/comments/25m291/simon_peyton_jones_haskell_is_useless/) co-author of haskell
+
+???
+He actually said Haskell is useless
+
+---
+class: center, middle
+
+# What is the solution?
+
+---
+class: center, middle
+
+# Create a VALUE that describes actions
+
+--
+
+# INTERPRET the value with side effects in Main
+
+---
+### 1. Encode Description
+
+```scala
+trait Description[A]
+```
+
+### 2. Define an unsafe interpreter of Description
+
+```scala
+def unsafeRun[A](fa: Description[A]): A = ??? // execute description, this is not a pure function
+```
+
+### 3. Combine everything in Main
+
+```scala
+object Main extends App {
+
+  val description: Description[Unit] = ???
+
+  unsafeRun(description)
+
+}
+```
+
+---
+background-image: url(img/sideeffect/effects-on-edges.svg)
+
+# Run side effects at the edges
+
+---
+class: center, middle
+
+# Examples of description / evaluation
+
+---
+.h1[# Cooking]
+
+.pull-left[
+### 1. Secret pasta recipe (Description)
+
+.large[
+1. Boil 200 ml of water
+2. Add 250 g of dry pasta
+3. Wait 11 minutes
+4. Drain the pasta
+]
+]
+.pull-right[
+.h3[### 2. Cook (Unsafe evaluation)]
+
+.large[
+Take the recipe and do it at home
+]
+]
+
+---
+background-image: url(img/sideeffect/lemon-meringue-1.svg)
+
+.reference[[Seven Sketches in Compositionality: An Invitation to Applied Category Theory](https://arxiv.org/abs/1803.05316)]
+
+---
+background-image: url(img/sideeffect/lemon-meringue-2.svg)
+
+# Cooking compose
+
+.reference[[Seven Sketches in Compositionality: An Invitation to Applied Category Theory](https://arxiv.org/abs/1803.05316)]
+
+---
+.h1[# Mathematical formula]
+
+.pull-left[
+```scala
+scala> val x = 2
+x: Int = 2
+
+scala> val y = 3
+y: Int = 3
+
+scala> val x2 = Math.pow(x, 2)
+x2: Double = 4.0
+
+scala> val y2 = Math.pow(y, 2)
+y2: Double = 9.0
+
+scala> val z  = Math.sqrt(x2 + y2)
+z: Double = 3.605551275463989
+```
+]
+
+.pull-right[
+![Right triangle](img/sideeffect/right-triangle-1.svg)
+]
+
+---
+
+.pull-left[
+# Mathematical formula
+
+<br>
+
+```scala
+scala> val x2 = Math.pow(x, 2)
+x2: Double = 4.0
+
+scala> val y2 = Math.pow(y, 2)
+y2: Double = 9.0
+
+scala> val z  = Math.sqrt(x2 + y2)
+z: Double = 3.605551275463989
+
+scala> Math.pow(z, 2)
+res0: Double = 12.999999999999998
+
+scala> x2 + y2
+res1: Double = 13.0
+```
+]
+
+.pull-right[
+![Right triangle](img/sideeffect/right-triangle-2.svg)
+]
+
+.reference[[Constraints Liberate, Liberties Constrain](https://www.youtube.com/watch?v=GqmsQeSzMdw)]
+
+---
+class: center, middle
+
+# How to encode description?
+
+---
+# How to encode description?
+
+<br>
+
+```scala
+trait Description[A]
+
+
+def unsafeRun[A](fa: Description[A]): A = ???
+```
+
+---
+# Thunk
+
+```scala
+type Thunk[A] = () => A  // Unit => A
+
+def unsafeRun[A](fa: Thunk[A]): A = fa()
+```
+
+--
+
+```scala
+import java.time.LocalDate
+import scala.io.Source
+
+def writeLine(message: String): Thunk[Unit] =
+  () => println(message)
+
+val today: Thunk[LocalDate] =
+  () => LocalDate.now()
+
+def fetch(url: String): Thunk[Iterator[String]] =
+  () => Source.fromURL(url)("ISO-8859-1").getLines
+```
+
+--
+
+```scala
+scala> val google = fetch("http://google.com")
+google: Thunk[Iterator[String]] = $$Lambda$3901/0x0000000101512840@5ffa6bbb
+
+scala> unsafeRun(google).take(1).toList
+res2: List[String] = List(<!doctype html><html itemscope="" itemtype="http://schema.org/WebPage" lang="en"><head><meta content="Search the world's information, including webpages, images, videos and more. Google has many special features to help you find exactly what you're looking for." name="description"><meta content="noodp" name="robots"><meta content="text/html; charset=UTF-8" http-equiv="Content-Type"><meta content="/images/branding/googleg/1x/googleg_standard_color_128dp.png" itemprop="image"><title>Google</title><script nonce="rfDL5ypuXv7o2UwC9cMN6Q==">(function(){window.google={kEI:'hXlvXeCWMaaAtgXOgb3YAw',kEXPI:'0,1353747,2015,1641,781,1225,731,223,510,1065,3152,378,206,1017,53,1431,577,2,124,10,713,338,242,2,24,3,32,182,2329842,329499,1344,12383,4855,32691,2075,13173,867,1216...
+```
+
+---
+# IO a wrapper over a thunk
+
+```scala
+class IO[A](thunk: () => A) {
+  def unsafeRun(): A = thunk()
+}
+
+def writeLine(message: String): IO[Unit] =
+  new IO(() => println(message))
+```
+
+```scala
+scala> val helloWorld = writeLine("Hello World!")
+helloWorld: IO[Unit] = IO@5a0274e7
+
+scala> helloWorld.unsafeRun()
+Hello World!
+```
+
+
+---
+class: center, middle
+
+# IO Exercises
+
+`exercises.sideeffect.IOExercises.scala`
+
+---
+.h1[# IO Summary]
+
+<br>
+
+.large[
+* An `IO` is a thunk of potentially impure code
+
+* Composing `IO` is referentially transparent, nothing get executed
+
+* It is easier to test `IO` if they are defined in a interface
+]
+
+---
+class: center, middle
+
+# IO Execution
+
+---
+# IO execution
+
+```scala
+case class UserId (value: String)
+case class OrderId(value: String)
+
+case class User(userId: UserId, name: String, orderIds: List[OrderId])
+```
+
+```scala
+def getUser(userId: UserId): IO[User] =
+  IO.effect{
+    val response = httpClient.get(s"http://foo.com/user/${userId.value}")
+    if(response.status == 200) parseJson[User](response.body)
+    else throw new Exception(s"Invalid status ${response.status}")
+  }
+
+def deleteOrder(orderId: OrderId): IO[Unit] =
+  IO.effect{
+    val response = httpClient.delete(s"http://foo.com/order/${orderId.value}")
+    if(response.status == 200) () else throw new Exception(s"Invalid status ${response.status}")
+  }
+```
+
+---
+# How is it executed?
+
+
+
+
+```scala
+def deleteAllUserOrders(userId: UserId): IO[Unit] =
+  for {
+    user <- getUser(userId)
+    _    <- traverse(user.orderIds)(deleteOrder)
+  } yield ()
+
+object Main extends App {
+
+  deleteAllUserOrders(UserId("1234")).unsafeRun()
+
+}
+```
+
+<br>
+
+### Discuss with your neighbour 3-4 min
+
+---
+# How is it executed?
+
+```scala
+def deleteAllUserOrders(userId: UserId): IO[Unit] =
+  for {
+    user    <- getUser(userId)
+    deletes  = user.orderIds.map(deleteOrder): List[IO[Unit]]
+    _       <- sequence(deletes)             : IO[List[Unit]]
+  } yield ()
+
+object Main extends App {
+
+  deleteAllUserOrders(UserId("1234")).unsafeRun()
+
+}
+```
+
+---
+# How is it executed?
+
+```scala
+def deleteAllUserOrders(userId: UserId): IO[Unit] =
+  for {
+    user <- getUser(userId)
+    // User("1234", "Rob", List("1111", "5555"))
+    _    <- deleteOrder(user.orderIds(0)) // 1111
+    _    <- deleteOrder(user.orderIds(1)) // 5555
+  } yield ()
+
+object Main extends App {
+
+  deleteAllUserOrders(UserId("1234")).unsafeRun()
+
+}
+```
+
+---
+.h1[# IO execution is sequential]
+
+.large-left[
+```scala
+def deleteAllUserOrders(userId: UserId): IO[Unit] =
+  for {
+    user <- getUser(userId)
+    // User("1234", "Rob", List("1111", "5555"))
+    _    <- deleteOrder(user.orderIds(0)) // 1111
+    _    <- deleteOrder(user.orderIds(1)) // 5555
+  } yield ()
+
+object Main extends App {
+
+  deleteAllUserOrders(UserId("1234")).unsafeRun()
+
+}
+```
+]
+
+.small-right[
+![Sequence Diagram](img/sideeffect/delete-all-user-orders.svg)
+]
+
+---
+class: center, middle
+
+# How can we evaluate IO concurrently?
+
+# Which IO can be evaluated concurrently?
+
+---
+.h1[# Which IO can be evaluated concurrently?]
+
+.large-left[
+```scala
+def deleteAllUserOrders(userId: UserId): IO[Unit] =
+  for {
+    user <- getUser(userId)
+    // User("1234", "Rob", List("1111", "5555"))
+    _    <- deleteOrder(user.orderIds(0)) // 1111
+    _    <- deleteOrder(user.orderIds(1)) // 5555
+  } yield ()
+
+object Main extends App {
+
+  deleteAllUserOrders(UserId("1234")).unsafeRun()
+
+}
+```
+
+<br>
+
+### Discuss with your neighbour 3-4 min
+]
+
+.small-right[
+![Sequence Diagram](img/sideeffect/delete-all-user-orders.svg)
+]
+
+---
+.h1[# For comprehension cannot be done concurrently]
+
+.pull-left[
+```scala
+def deleteAllUserOrders(userId: UserId): IO[Unit] =
+  for {
+    `user` <- getUser(userId)
+    // User("1234", "Rob", List("1111", "5555"))
+    _    <- deleteOrder(`user`.orderIds(0)) // 1111
+    _    <- deleteOrder(`user`.orderIds(1)) // 5555
+  } yield ()
+```
+]
+
+.pull-right[
+![Sequence Diagram](img/sideeffect/delete-all-user-orders.svg)
+]
+
+---
+.h1[# For comprehension cannot be done concurrently]
+
+.large-left[
+
+```scala
+def delete2Orders(orderId1: OrderId, orderId2: OrderId): IO[Unit] =
+  for {
+    `ackOrder1` <- deleteOrder(orderId1)
+    `ackOrder2` <- deleteOrder(orderId2)
+  } yield ()
+```
+]
+
+.small-right[
+![Sequence Diagram](img/sideeffect/delete-orders.svg)
+]
+
+---
+.h1[# Concurrent execution]
+
+.large-left[
+
+```scala
+def parExec(io1: IO[Unit], io2: IO[Unit]): IO[Unit] = ???
+
+def delete2Orders(orderId1: OrderId, orderId2: OrderId): IO[Unit] =
+  parExec(deleteOrder(orderId1), deleteOrder(orderId2))
+```
+]
+
+.small-right[
+![Sequence Diagram](img/sideeffect/delete-orders-concurrent.svg)
+]
+
+---
+# parExec is loosely defined
+
+
+```scala
+def parExec(io1: IO[Unit], io2: IO[Unit]): IO[Unit] =
+  io1
+
+def parExec(io1: IO[Unit], io2: IO[Unit]): IO[Unit] =
+  io2
+
+def parExec(io1: IO[Unit], io2: IO[Unit]): IO[Unit] =
+  for {
+    _ <- io1
+    _ <- io2
+  } yield ()
+
+def parExec(io1: IO[Unit], io2: IO[Unit]): IO[Unit] =
+  IO.succeed(())
+```
+
+---
+.h1[# Parametricity]
+
+.large-left[
+
+
+
+
+```scala
+def parMap2[A, B, C](fa: IO[`A`], fb: IO[`B`])
+                    (f: (`A`, `B`) => `C`): IO[`C`] = ???
+
+def delete2Orders(orderId1: OrderId, orderId2: OrderId): IO[Unit] =
+  parMap2(
+    deleteOrder(orderId1),
+    deleteOrder(orderId2)
+  )((_,_) => ())
+```
+]
+
+.small-right[
+![Sequence Diagram](img/sideeffect/delete-orders-concurrent.svg)
+]
+
+---
+class: center, middle
+
+# How concurrency is done with Future?
+
+---
+.h1[# Future]
+
+.large-left[
+```scala
+import scala.concurrent.{ExecutionContext, Future}
+
+def deleteOrder(orderId: OrderId)
+  (implicit ec: ExecutionContext): Future[Unit] =
+  Future { ??? }
+
+def delete2Orders(
+  orderId1: OrderId,
+  orderId2: OrderId
+)(implicit ec: ExecutionContext): Future[Unit] = {
+
+  val delete1: Future[Unit] = deleteOrder(orderId1) // (1) side effect
+  val delete2: Future[Unit] = deleteOrder(orderId2) // (2) side effect
+
+  for {
+    _ /* (3) */ <- delete1
+    _ /* (4) */ <- delete2
+  } yield ()
+}
+```
+]
+
+.small-right[
+![Sequence Diagram](img/sideeffect/delete-orders-concurrent-2.svg)
+]
+
+---
+.h1[# Execution Context]
+
+.large-left[
+```scala
+import scala.concurrent.{ExecutionContext, Future}
+
+def deleteOrder(orderId: OrderId)(ec: ExecutionContext): Future[Unit] =
+  Future { ??? }(`ec`)
+
+def delete2Orders(
+  orderId1: OrderId,
+  orderId2: OrderId
+)(ec: ExecutionContext): Future[Unit] = {
+
+  val delete1 = deleteOrder(orderId1)(`ec`) // (1) side effect
+  val delete2 = deleteOrder(orderId2)(`ec`) // (2) side effect
+
+  delete1.flatMap(_ =>       // (3)
+    delete2.map(_ => ())(`ec`) // (4)
+  )(`ec`)
+}
+```
+]
+
+.small-right[
+![Sequence Diagram](img/sideeffect/delete-orders-concurrent-2.svg)
+]
+
+---
+.h1[# Execution Context]
+
+
+
+
+.pull-left[
+```scala
+import java.util.concurrent.Executors
+import scala.concurrent.ExecutionContext
+
+val factory = threadFactory("test")
+val pool = Executors.newFixedThreadPool(2, factory)
+val ec = ExecutionContext.fromExecutorService(pool)
+
+var x: Int = 0
+
+val inc: Runnable = new Runnable {
+  def run(): Unit = x += 1
+}
+```
+
+
+```scala
+scala> x
+res4: Int = 0
+
+scala> (1 to 10).foreach(_ => ec.execute(inc))
+
+scala> x
+res6: Int = 10
+```
+]
+
+.pull-right[
+![Execution Context](img/sideeffect/execution-context.svg)
+]
+
+---
+.h1[# Execution Context]
+
+.pull-left[
+```scala
+def delete2Orders(
+  orderId1: OrderId,
+  orderId2: OrderId
+)(ec: ExecutionContext): Future[Unit] = {
+
+  val delete1 = deleteOrder(orderId1)(`ec`) // (1)
+  val delete2 = deleteOrder(orderId2)(`ec`) // (2)
+
+  delete1.flatMap(_ =>       // (3)
+    delete2.map(_ => ())(ec) // (4)
+  )(ec)
+}
+```
+]
+
+.pull-right[
+![Sequence Diagram](img/sideeffect/future-ec-1.svg)
+]
+
+---
+.h1[# Execution Context]
+
+.pull-left[
+```scala
+def delete2Orders(
+  orderId1: OrderId,
+  orderId2: OrderId
+)(ec: ExecutionContext): Future[Unit] = {
+
+  val delete1 = deleteOrder(orderId1)(`ec`) // (1)
+  val delete2 = deleteOrder(orderId2)(`ec`) // (2)
+
+  delete1.flatMap(_ =>       // (3)
+    delete2.map(_ => ())(ec) // (4)
+  )(ec)
+}
+```
+]
+
+.pull-right[
+![Sequence Diagram](img/sideeffect/future-ec-2.svg)
+]
+
+---
+.h1[# Execution Context]
+
+.pull-left[
+```scala
+def delete2Orders(
+  orderId1: OrderId,
+  orderId2: OrderId
+)(ec: ExecutionContext): Future[Unit] = {
+
+  val delete1 = deleteOrder(orderId1)(ec) // (1)
+  val delete2 = deleteOrder(orderId2)(ec) // (2)
+
+  delete1.flatMap(_ =>       // (3)
+    delete2.map(_ => ())(ec) // (4)
+  )(`ec`)
+}
+```
+]
+
+.pull-right[
+![Sequence Diagram](img/sideeffect/future-ec-3.svg)
+]
+
+---
+.h1[# Execution Context]
+
+.pull-left[
+```scala
+def delete2Orders(
+  orderId1: OrderId,
+  orderId2: OrderId
+)(ec: ExecutionContext): Future[Unit] = {
+
+  val delete1 = deleteOrder(orderId1)(ec) // (1)
+  val delete2 = deleteOrder(orderId2)(ec) // (2)
+
+  delete1.flatMap(_ =>       // (3)
+    delete2.map(_ => ())(`ec`) // (4)
+  )(ec)
+}
+```
+]
+
+.pull-right[
+![Sequence Diagram](img/sideeffect/future-ec-4.svg)
+]
+
+---
+.large-left[
+.h1[# Future is not referentially transparent]
+
+
+
+
+```scala
+def deleteOrdersConcurrent(orderId1: OrderId,orderId2: OrderId)
+  (implicit ec: ExecutionContext): Future[Unit] = {
+
+  val delete1 = deleteOrder(orderId1) // (1)
+  val delete2 = deleteOrder(orderId2) // (2)
+
+  for {
+    _ /* (3) */ <- delete1
+    _ /* (4) */ <- delete2
+  } yield ()
+}
+```
+
+```scala
+def deleteOrdersSequential(orderId1: OrderId,orderId2: OrderId)
+  (implicit ec: ExecutionContext): Future[Unit] =
+  for {
+    _ /* (2) */ <- deleteOrder(orderId1) // (1)
+    _ /* (4) */ <- deleteOrder(orderId2) // (3)
+  } yield ()
+```
+]
+
+.small-right[
+![Sequence Diagram](img/sideeffect/delete-orders-2.svg)
+<br>
+<br>
+![Sequence Diagram](img/sideeffect/delete-orders-concurrent-2.svg)
+]
+
+---
+class: center, middle
+
+# How can we adapt Future behaviour to pure IO?
+
+---
+# Concurrent IO
+
+```scala
+trait IO[+A] {
+  def start(ec: ExecutionContext): ???
+}
+```
+
+<br>
+
+### Discuss with your neighbour 3-4 min
+
+---
+# Concurrent IO
+
+```scala
+trait IO[+A] {
+  def start(ec: ExecutionContext): IO[???]
+}
+```
+
+---
+# Concurrent IO
+
+```scala
+trait IO[+A] {
+  def start(ec: ExecutionContext): IO[Foo[A]]
+}
+
+trait Foo[A] {
+  def await: ???
+}
+```
+
+---
+# Concurrent IO
+
+```scala
+trait IO[+A] {
+  def start(ec: ExecutionContext): IO[Foo[A]]
+}
+
+trait Foo[A] {
+  def await: IO[A]
+}
+```
+
+---
+# Concurrent IO
+
+```scala
+trait IO[+A] {
+  def start(ec: ExecutionContext): IO[IO[A]]
+}
+```
+
+
+
+
+---
+.h1[# Concurrent IO: parMap2]
+
+.large-left[
+```scala
+trait IO[+A] {
+  def start(ec: ExecutionContext): IO[IO[A]]
+}
+```
+
+```scala
+def parMap2[A, B, C](
+  fa: IO[A],
+  fb: IO[B]
+)(f: (A, B) => C)(ec: ExecutionContext): IO[C] = ???
+```
+]
+
+.small-right[
+![Sequence Diagram](img/sideeffect/delete-orders-concurrent-2.svg)
+]
+
+
+---
+.h1[# Concurrent IO: parMap2]
+
+.large-left[
+```scala
+trait IO[+A] {
+  def start(ec: ExecutionContext): IO[IO[A]]
+}
+```
+
+```scala
+def parMap2[A, B, C](
+  fa: IO[A],
+  fb: IO[B]
+)(f: (A, B) => C)(ec: ExecutionContext): IO[C] =
+  for {
+    awaitForA <- fa.start(ec) // (1)
+    awaitForB <- fb.start(ec) // (2)
+    a         <- awaitForA    // (3)
+    b         <- awaitForB    // (4)
+  } yield f(a, b)
+```
+]
+
+.small-right[
+![Sequence Diagram](img/sideeffect/delete-orders-concurrent-2.svg)
+]
+
+---
+.h1[# Concurrent IO is referentially transparent]
+
+.large-left[
+```scala
+trait IO[+A] {
+  def start(ec: ExecutionContext): IO[IO[A]]
+}
+```
+
+```scala
+def parMap2[A, B, C](
+  fa: IO[A],
+  fb: IO[B]
+)(f: (A, B) => C)(ec: ExecutionContext): IO[C] = {
+
+  val asyncIOA = fa.start(ec)
+  val asyncIOB = fb.start(ec)
+
+  for {
+    awaitForA <- asyncIOA     // (1)
+    awaitForB <- asyncIOB     // (2)
+    a         <- awaitForA    // (3)
+    b         <- awaitForB    // (4)
+  } yield f(a, b)
+}
+```
+]
+
+.small-right[
+![Sequence Diagram](img/sideeffect/delete-orders-concurrent-2.svg)
+]
+
+---
+# Concurrent IO with Async
+
+```scala
+type Callback[-A] = Either[Throwable, A] => Unit
+
+sealed trait IO[+A]
+
+object IO {
+  case class Thunk[+A](f: () => A) extends IO[A]
+
+  case class Async[+A](f: Callback[A] => Unit, ec: ExecutionContext) extends IO[A]
+}
+```
+
+--
+
+### An IO is either a Thunk or a Async computation with a CallBack
+
+---
+# Concurrent IO with Async
+
+```scala
+type Callback[-A] = Either[Throwable, A] => Unit
+
+sealed trait IO[+A]
+
+object IO {
+  case class Thunk[+A](f: () => A) extends IO[A]
+
+  case class Async[+A](f: Callback[A] => Unit, ec: ExecutionContext) extends IO[A]
+}
+```
+
+### Continuation-passing style (CPS)
+
+```scala
+def add(a: Int, b: Int): Int = a + b
+
+def add(a: Int, b: Int)(rest: Int => Unit): Unit = {
+  val res = a + b
+  rest(res)
+}
+```
+
+.reference[[How do Fibers work](http://systemfw.org/Scala-World-2019/#/)]
+
+---
+# Concurrent IO with Async
+
+```scala
+type Callback[-A] = Either[Throwable, A] => Unit
+
+sealed trait IO[+A]
+
+object IO {
+  case class Thunk[+A](f: () => A) extends IO[A]
+
+  case class Async[+A](f: Callback[A] => Unit, ec: ExecutionContext) extends IO[A]
+}
+```
+
+
+
+
+```scala
+def unsafeRunAsync[A](fa: IO[A])(cb: Callback[A]): Unit =
+  fa match {
+    case Thunk(f) =>
+      val res: Either[Throwable, A] = Try(f()).toEither
+      cb(res)
+    case Async(f, ec) =>
+      ec.execute(new Runnable {
+         def run(): Unit = f(cb)
+      })
+  }
+```
+
+---
+# EvalOn
+
+```scala
+type Callback[-A] = Either[Throwable, A] => Unit
+
+sealed trait IO[+A]
+
+object IO {
+  case class Thunk[+A](f: () => A) extends IO[A]
+
+  case class Async[+A](f: Callback[A] => Unit, ec: ExecutionContext) extends IO[A]
+}
+```
+
+```scala
+val threadName: IO[String] = IO.Thunk(() => Thread.currentThread().getName)
+
+def evalOn[A](fa: IO[A])(ec: ExecutionContext): IO[A] =
+  IO.Async(unsafeRunAsync(fa), ec)
+```
+
+
+
+
+```scala
+scala> unsafeRun(threadName)
+res7: String = run-main-0
+
+scala> unsafeRun(evalOn(threadName)(scala.concurrent.ExecutionContext.global))
+res8: String = scala-execution-context-global-42
+```
+
+---
+class: center, middle
+
+# IO Async Exercises
+
+`exercises.sideeffect.IOAsyncExercises.scala`
+
+---
+.h1[# Library IO implementations do much more]
+
+.large[
+* Stack safety and JVM optimisation
+
+* Cancellation, e.g. race two IO and cancel the loser
+
+* Safe resource shutdown, e.g. close file, shutdown server
+
+* Efficient Timer, retry utilities
+
+* Help to chose right thread pool for different type of work: blocking, compute, dispatcher
+]
+
+---
+class: center, middle
+
+# What are the limitations of IO?
+
+---
+background-image: url(img/sideeffect/IO.svg)
+
+# IO cannot be introspected
+
+---
+background-image: url(img/sideeffect/IO-composition-1.svg)
+
+# IO cannot be introspected
+
+---
+class: center, middle
+
+# How can we encode side effects more precisely?
+
+---
+class: center, middle
+
+# Warning: this is an advanced technique
+
+---
+# Effect Algebra
+
+```scala
+sealed trait Description[A]
+
+object Description {
+  case object Today                      extends Description[LocalDate]
+  case class  FetchString(url: String)   extends Description[String]
+  case class  WriteLine(message: String) extends Description[Unit]
+}
+```
+
+--
+
+```scala
+import Description._
+
+def unsafeRun[A](fa: Description[A]): A =
+  fa match {
+    case Today            => LocalDate.now()
+    case FetchString(url) => Source.fromURL(url).mkString("")
+    case WriteLine(msg)   => println(msg)
+  }
+```
+
+---
+# Effect Algebra
+
+```scala
+object Main extends App {
+
+  val description: Description[Unit] = WriteLine("Hello World")
+
+  unsafeRun(description)
+
+}
+```
+
+```scala
+scala> Main.main(Array.empty)
+Hello World
+```
+
+---
+# Interpret algebra in different ways
+
+```scala
+def testInterpreter[A](fa: Description[A]): A =
+  fa match {
+    case Today            => LocalDate.of(2019, 8, 17)
+    case FetchString(url) => "Hello World"
+    case WriteLine(msg)   => ()
+  }
+```
+
+```scala
+def loggerInterpreter[A](fa: Description[A]): String =
+  fa match {
+    case Today            =>  "call Today"
+    case FetchString(url) => s"call FetchString for $url"
+    case WriteLine(msg)   => s"call WriteLine with $msg"
+  }
+```
+
+---
+class: center, middle
+
+# How to add new descriptions?
+
+# How to combine description together?
+
+---
+# How to add new descriptions?
+
+```scala
+sealed trait Description[A]
+object Description {
+  case object Today                      extends Description[LocalDate]
+  case class  FetchString(url: String)   extends Description[String]
+  case class  WriteLine(message: String) extends Description[Unit]
+}
+```
+
+--
+
+### 1. Add primitive (👎 not really scalable)
+
+```scala
+case object FetchJson extends Description[Json]
+```
+
+--
+
+### 2. Transform existing actions (👍 composable)
+
+```scala
+FetchString.map(parseJson)
+```
+
+---
+# Problem
+
+```scala
+sealed trait Description[A]
+
+object Description {
+  case object Today                      extends Description[LocalDate]
+  case class  FetchString(url: String)   extends Description[String]
+  case class  WriteLine(message: String) extends Description[Unit]
+}
+```
+
+```scala
+import Description._
+
+def map[A, B](fa: Description[A])(f: A => B): Description[B] =
+  fa match {
+    case Today            => ???
+    case FetchString(url) => ???
+    case WriteLine(msg)   => ???
+  }
+```
+
+---
+# Free structures (brief introduction)
+
+
+
+
+```scala
+sealed trait FreeMap[A]
+
+object FreeMap {
+  case class Map[`X`, A](description: Description[`X`], update: `X` => A) extends FreeMap[A]
+}
+```
+
+--
+
+
+
+
+```scala
+import io.circe.Json
+
+def parseJson(x: String): Json =
+  io.circe.parser.parse(x).getOrElse(Json.obj())
+
+def fetchJson(url: String): FreeMap[Json] =
+  Map(FetchString(url), parseJson)
+```
+
+---
+# Free structures
+
+```scala
+sealed trait FreeMap[A] {
+  def map[C](f: A => C): FreeMap[C]
+}
+
+object FreeMap {
+  def lift[A](description: Description[A]): FreeMap[A] =
+    Map(description, identity[A])
+
+  case class Map[X, A](description: Description[X], update: X => A) extends FreeMap[A] {
+    def map[C](f: A => C): FreeMap[C] = Map(description, update andThen f)
+  }
+}
+```
+
+
+
+
+```scala
+def fetchString(url: String): FreeMap[String] = FreeMap.lift(FetchString(url))
+
+def fetchJson(url: String)   : FreeMap[Json]  = fetchString(url).map(parseJson)
+```
+
+---
+# Free structures
+
+### 1. Primitives
+
+```scala
+val today                   : FreeMap[LocalDate] = FreeMap.lift(Today)
+def fetchString(url: String): FreeMap[String]    = FreeMap.lift(FetchString(url))
+def writeLine(msg: String)  : FreeMap[Unit]      = FreeMap.lift(WriteLine(msg))
+```
+
+### 2. Derived description
+
+```scala
+def fetchJson(url: String): FreeMap[Json] = fetchString(url).map(parseJson)
+```
+
+---
+# Free structures
+
+### 3. Interpreters
+
+```scala
+def unsafeRun[A](fa: Description[A]): A =
+  fa match {
+    case Today            => LocalDate.now()
+    case FetchString(url) => Source.fromURL(url).mkString("")
+    case WriteLine(msg)   => println(msg)
+  }
+
+def unsafeRunFree[A](fa: FreeMap[A]): A =
+  fa match {
+    case Map(fa, f) => f(unsafeRun(fa))
+  }
+```
+
+---
+# Tadam!
+
+```scala
+object Main extends App {
+
+  val description: FreeMap[Json] = fetchJson("https://api.github.com/users/julien-truffaut/orgs")
+
+  println(unsafeRunFree(description))
+
+}
+```
+
+```scala
+scala> Main.main(Array.empty)
+[
+  {
+    "login" : "http4s",
+    "id" : 1527492,
+    "node_id" : "MDEyOk9yZ2FuaXphdGlvbjE1Mjc0OTI=",
+    "url" : "https://api.github.com/orgs/http4s",
+    "repos_url" : "https://api.github.com/orgs/http4s/repos",
+    "events_url" : "https://api.github.com/orgs/http4s/events",
+    "hooks_url" : "https://api.github.com/orgs/http4s/hooks",
+    "issues_url" : "https://api.github.com/orgs/http4s/issues",
+    "members_url" : "https://api.github.com/orgs/http4s/members{/member}",
+    "public_members_url" : "https://api.github.com/orgs/http4s/public_members{/member}",
+    "avatar_url" : "https://avatars3.githubusercontent.com/u/1527492?v=4",
+    "description" : ""
+  },
+  {
+    "login" : "typelevel",
+    "id" : 3731824,
+    "node_id" : "MDEyOk9yZ2FuaXphdGlvbjM3MzE4MjQ=",
+    "url" : "https://api.github.com/orgs/typelevel",
+    "repos_url" : "https://api.github.com/orgs/typelevel/repos",
+    "events_url" : "https://api.github.com/orgs/typelevel/events",
+    "hooks_url" : "https://api.github.com/orgs/typelevel/hooks",
+    "issues_url" : "https://api.github.com/orgs/typelevel/issues",
+    "members_url" : "https://api.github.com/orgs/typelevel/members{/member}",
+    "public_members_url" : "https://api.github.com/orgs/typelevel/public_members{/member}",
+    "avatar_url" : "https://avatars0.githubusercontent.com/u/3731824?v=4",
+    "description" : "Let the Scala compiler work for you."
+  },
+  {
+    "login" : "argonaut-io",
+    "id" : 5205720,
+    "node_id" : "MDEyOk9yZ2FuaXphdGlvbjUyMDU3MjA=",
+    "url" : "https://api.github.com/orgs/argonaut-io",
+    "repos_url" : "https://api.github.com/orgs/argonaut-io/repos",
+    "events_url" : "https://api.github.com/orgs/argonaut-io/events",
+    "hooks_url" : "https://api.github.com/orgs/argonaut-io/hooks",
+    "issues_url" : "https://api.github.com/orgs/argonaut-io/issues",
+    "members_url" : "https://api.github.com/orgs/argonaut-io/members{/member}",
+    "public_members_url" : "https://api.github.com/orgs/argonaut-io/public_members{/member}",
+    "avatar_url" : "https://avatars1.githubusercontent.com/u/5205720?v=4",
+    "description" : null
+  },
+  {
+    "login" : "fp-tower",
+    "id" : 50878186,
+    "node_id" : "MDEyOk9yZ2FuaXphdGlvbjUwODc4MTg2",
+    "url" : "https://api.github.com/orgs/fp-tower",
+    "repos_url" : "https://api.github.com/orgs/fp-tower/repos",
+    "events_url" : "https://api.github.com/orgs/fp-tower/events",
+    "hooks_url" : "https://api.github.com/orgs/fp-tower/hooks",
+    "issues_url" : "https://api.github.com/orgs/fp-tower/issues",
+    "members_url" : "https://api.github.com/orgs/fp-tower/members{/member}",
+    "public_members_url" : "https://api.github.com/orgs/fp-tower/public_members{/member}",
+    "avatar_url" : "https://avatars1.githubusercontent.com/u/50878186?v=4",
+    "description" : ""
+  }
+]
+```
+
+---
+# Free translates functions to data structures (GADT)
+
+
+```scala
+def         readLine :                   String
+case object ReadLine extends Description[String]
+
+def         writeLine(message: String) :                   Unit
+case object WriteLine(message: String) extends Description[Unit]
+
+def        map[X, A](action: Description[X], update: X => A) :       Description[A]
+case class Map[X, A](action: Description[X], update: X => A) extends     FreeMap[A]
+```
+
+---
+class: center, middle
+
+# Algebra Exercises
+
+`exercises.sideeffect.AlgebraExercises.scala`
+
+---
+.h1[# Free Summary]
+
+.large[
+* Free translates code into data
+
+* Easy to interpret an algebra in many ways (log, test, real, metrics)
+
+* Complex (GADT, natural transformation, Coproduct, ...)
+
+* Can miss some features from target effect like parallel execution, resource handling
+]
+
+---
+class: center, middle
+
+# All problems in computer science can be solved by another level of indirection
+
+David Wheeler
+
+---
+class: center, middle
+
+# Free is several orders of magnitude more complex than IO
+
+---
+# Resources and further study
+
+* [Seven Sketches in Compositionality: An Invitation to Applied Category Theory](https://arxiv.org/abs/1803.05316)
+* [Constraints Liberate, Liberties Constrain](https://www.youtube.com/watch?v=GqmsQeSzMdw)
+* [How do Fibers work](http://systemfw.org/Scala-World-2019/#/)
+
+---
+class: center, middle
+
+# [Module 3: Type](3-Type.html#1)
+
+</textarea>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js">
+</script>
+<script>
+    var slideshow = remark.create({
+        ratio: "16:9",
+        slideNumberFormat: '%current%',
+        // highlightStyle: "github",
+        highlightLines: true,
+        highlightSpans: true,
+    });
+</script>
+</body>
+</html>
